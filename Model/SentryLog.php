@@ -9,6 +9,7 @@ use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\SessionException;
 use Magento\Framework\Logger\Monolog;
+use Monolog\Level;
 use Sentry\State\Scope as SentryScope;
 
 class SentryLog extends Monolog
@@ -21,13 +22,13 @@ class SentryLog extends Monolog
     /**
      * SentryLog constructor.
      *
-     * @param string            $name
-     * @param Data              $data
-     * @param Session           $customerSession
-     * @param State             $appState
+     * @param string $name
+     * @param Data $data
+     * @param Session $customerSession
+     * @param State $appState
      * @param SentryInteraction $sentryInteraction
-     * @param array             $handlers
-     * @param array             $processors
+     * @param array $handlers
+     * @param array $processors
      */
     public function __construct(
         $name,
@@ -45,15 +46,15 @@ class SentryLog extends Monolog
      * Check and send log information to Sentry.
      *
      * @param \Throwable|string $message
-     * @param int               $logLevel
-     * @param array             $context
+     * @param int|Level $logLevel
+     * @param array $context
      */
     public function send($message, $logLevel, $context = [])
     {
         $config = $this->data->collectModuleConfig();
         $customTags = [];
 
-        if ($logLevel < (int) $config['log_level']) {
+        if ($logLevel < (int)$config['log_level']) {
             return;
         }
 
@@ -76,7 +77,7 @@ class SentryLog extends Monolog
         if ($message instanceof \Throwable) {
             $lastEventId = \Sentry\captureException($message);
         } else {
-            $lastEventId = \Sentry\captureMessage($message, \Sentry\Severity::fromError($logLevel));
+            $lastEventId = \Sentry\captureMessage($message, \Sentry\Severity::fromError($logLevel->value));
         }
 
         /// when using JS SDK you can use this for custom error page printing
@@ -107,7 +108,7 @@ class SentryLog extends Monolog
      * Add additional tags to the scope.
      *
      * @param SentryScope $scope
-     * @param array       $customTags
+     * @param array $customTags
      */
     private function setTags(SentryScope $scope, $customTags): void
     {
