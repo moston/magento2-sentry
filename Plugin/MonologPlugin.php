@@ -5,20 +5,24 @@ namespace JustBetter\Sentry\Plugin;
 use JustBetter\Sentry\Helper\Data;
 use JustBetter\Sentry\Model\SentryLog;
 use Magento\Framework\App\DeploymentConfig;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\RuntimeException;
 use Magento\Framework\Logger\Monolog;
-use Monolog\DateTimeImmutable;
+use Monolog\JsonSerializableDateTimeImmutable;
+use Monolog\Level;
 
 class MonologPlugin extends Monolog
 {
     /**
      * @psalm-param array<callable(array): array> $processors
      *
-     * @param string                              $name             The logging channel, a simple descriptive name that is attached to all log records
-     * @param Data                                $sentryHelper
-     * @param SentryLog                           $sentryLog
-     * @param DeploymentConfig                    $deploymentConfig
-     * @param \Monolog\Handler\HandlerInterface[] $handlers         Optional stack of handlers, the first one in the array is called first, etc.
-     * @param callable[]                          $processors       Optional array of processors
+     * @param string $name The logging channel, a simple descriptive name that is attached to all log records
+     * @param Data $sentryHelper
+     * @param SentryLog $sentryLog
+     * @param DeploymentConfig $deploymentConfig
+     * @param \Monolog\Handler\HandlerInterface[] $handlers Optional stack of handlers, the first one in the array is
+     *     called first, etc.
+     * @param callable[] $processors Optional array of processors
      */
     public function __construct(
         $name,
@@ -34,18 +38,20 @@ class MonologPlugin extends Monolog
     /**
      * Adds a log record to Sentry.
      *
-     * @param int               $level    The logging level
-     * @param string            $message  The log message
-     * @param array             $context  The log context
-     * @param DateTimeImmutable $datetime Datetime of log
+     * @param int|Level $level
+     * @param string $message
+     * @param array $context
+     * @param JsonSerializableDateTimeImmutable|null $datetime
      *
-     * @return bool Whether the record has been processed
+     * @return bool
+     * @throws FileSystemException
+     * @throws RuntimeException
      */
     public function addRecord(
-        int $level,
+        int|Level $level,
         string $message,
         array $context = [],
-        DateTimeImmutable $datetime = null
+        JsonSerializableDateTimeImmutable|null $datetime = null
     ): bool {
         if ($this->deploymentConfig->isAvailable() && $this->sentryHelper->isActive()) {
             $this->sentryLog->send($message, $level, $context);
