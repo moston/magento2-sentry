@@ -2,7 +2,7 @@
   "name": "moston/magento2-sentry",
   "description": "Magento 2 Logger for Sentry",
   "type": "magento2-module",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "license": "MIT",
   "require": {
     "php": ">=8.3",
